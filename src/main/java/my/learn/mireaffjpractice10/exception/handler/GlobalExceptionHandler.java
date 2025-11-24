@@ -3,6 +3,7 @@ package my.learn.mireaffjpractice10.exception.handler;
 import my.learn.mireaffjpractice10.exception.AppException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -17,6 +18,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Object> handleAppException(AppException e) {
         return new ResponseEntity<>(e.getMessage(), e.getStatus());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Object> handleException(AuthenticationException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
 

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+//    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -33,7 +33,7 @@ public class UserService implements UserDetailsService {
         } catch (AppException e) {
             User user = User.builder()
                     .email(userRequest.getEmail())
-                    .password(passwordEncoder.encode(userRequest.getPassword()))
+                    .password((userRequest.getPassword())) //todo add encoding
                     .build();
             return userRepository.save(user);
         }

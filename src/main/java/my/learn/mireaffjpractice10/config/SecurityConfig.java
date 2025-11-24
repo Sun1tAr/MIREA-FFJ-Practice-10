@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import my.learn.mireaffjpractice10.model.UserRoles;
 import my.learn.mireaffjpractice10.service.UserService;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Configuration
 public class SecurityConfig {
 
     private final UserService userService;
@@ -31,8 +33,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
-        return cfg.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean

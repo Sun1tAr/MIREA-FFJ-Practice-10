@@ -12,19 +12,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/user")
 public class UserController {
 
-    @GetMapping("/me")
-    public ResponseEntity<UserDTO> getMe() {
-
-    }
-
-    @GetMapping("/logout")
-    public ResponseEntity<UserDTO> logout() {
-
-    }
-
-    @GetMapping("/refresh")
-    public ResponseEntity<UserDTO> refreshToken() {
-
-    }
+//    @GetMapping("/me")
+//    public ResponseEntity<UserDTO> getMe() {
+//
+//    }
+//
+//    @GetMapping("/logout")
+//    public ResponseEntity<UserDTO> logout() {
+//
+//    }
+//
+//    @GetMapping("/refresh")
+//    public ResponseEntity<UserDTO> refreshToken() {
+//
+//    }
 
 }

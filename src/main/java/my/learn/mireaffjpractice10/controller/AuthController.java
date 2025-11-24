@@ -8,6 +8,10 @@ import my.learn.mireaffjpractice10.service.UserService;
 import my.learn.mireaffjpractice10.util.JwtTokenUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,12 +24,20 @@ public class AuthController {
 
     private final UserService userService;
     private final JwtTokenUtils jwtTokenUtils;
+    private final AuthenticationManager authenticationManager;
 
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> registerUser(@RequestBody UserRequest userRequest) {
         User newUser = userService.createNewUser(userRequest);
         //todo get token
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userRequest.getEmail(), userRequest.getPassword()));
+        UserDetails userDetails = userService.loadUserByUsername(userRequest.getEmail());
+        String token = jwtTokenUtils.generateToken(userDetails);
+
+
+
         AuthResponse response = new AuthResponse("");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -34,7 +46,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginUser(@RequestBody UserRequest userRequest) {
 
         //todo get user and token
-        AuthResponse response = new AuthResponse("");
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userRequest.getEmail(), userRequest.getPassword()));
+        UserDetails userDetails = userService.loadUserByUsername(userRequest.getEmail());
+        String token = jwtTokenUtils.generateToken(userDetails);
+
+
+        AuthResponse response = new AuthResponse(token);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
