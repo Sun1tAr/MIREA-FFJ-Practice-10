@@ -9,8 +9,9 @@ import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public class AuthResponse {
+public abstract class AuthResponse {
 
-    private Token token;
+    private final Token accessToken;
+
 
 }

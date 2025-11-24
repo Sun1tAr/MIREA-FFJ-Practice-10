@@ -40,6 +40,21 @@ public class JwtTokenUtils {
                 .build();
     }
 
+    public Token generateRefreshToken(UserDetails userDetails) {
+        Date issuedDate = new Date();
+        Date expiredDate = new Date(
+                issuedDate.getTime() + jwtConfig.getRefreshLifetime().toMillis()
+        );
+
+        String payload = getToken(userDetails, issuedDate, expiredDate);
+        return Token.builder()
+                .type(TokenType.BEARER)
+                .purpose(TokenPurpose.REFRESH)
+                .expiredAt(expiredDate)
+                .token(payload)
+                .build();
+    }
+
     private String getToken(UserDetails userDetails,
                             Date issuedDate,
                             Date expiredDate) {

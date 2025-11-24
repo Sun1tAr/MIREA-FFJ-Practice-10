@@ -1,6 +1,8 @@
 package my.learn.mireaffjpractice10.util;
 
 import my.learn.mireaffjpractice10.dto.response.AuthResponse;
+import my.learn.mireaffjpractice10.dto.response.AuthResponse2FA;
+import my.learn.mireaffjpractice10.dto.response.AuthResponsePlain;
 import my.learn.mireaffjpractice10.dto.response.UserDTO;
 import my.learn.mireaffjpractice10.exception.AppException;
 import my.learn.mireaffjpractice10.model.Token;
@@ -14,7 +16,11 @@ import java.util.List;
 public class CommonMapper {
 
     public AuthResponse mapToAuthResponse(Token token) {
-        return new AuthResponse(token);
+        return new AuthResponsePlain(token);
+    }
+
+    public AuthResponse mapToAuthResponse(Token accessToken, Token refreshToken) {
+        return new AuthResponse2FA(accessToken, refreshToken);
     }
 
     public UserDTO mapToDTO(User user) {
