@@ -2,7 +2,7 @@ package my.learn.mireaffjpractice10.controller;
 
 
 import lombok.RequiredArgsConstructor;
-import my.learn.mireaffjpractice10.dto.AdminStats;
+import my.learn.mireaffjpractice10.dto.response.AdminStats;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +17,11 @@ public class AdminController {
     @GetMapping("/stats")
     public ResponseEntity<?> getStats() {
         return new ResponseEntity<>(new AdminStats(), HttpStatus.OK);
+    }
+
+    @GetMapping("/test")
+    public String getTest() {
+        return "So work!";
     }
 
 }

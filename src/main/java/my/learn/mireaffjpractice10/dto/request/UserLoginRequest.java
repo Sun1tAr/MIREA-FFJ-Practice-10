@@ -1,9 +1,9 @@
-package my.learn.mireaffjpractice10.dto;
+package my.learn.mireaffjpractice10.dto.request;
 
 import lombok.Data;
 
 @Data
-public class UserRequest {
+public class UserLoginRequest {
 
     private String email;
     private String password;

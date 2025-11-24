@@ -1,8 +1,6 @@
 package my.learn.mireaffjpractice10.controller;
 
 import lombok.RequiredArgsConstructor;
-import my.learn.mireaffjpractice10.dto.UserDTO;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,5 +24,12 @@ public class UserController {
 //    public ResponseEntity<UserDTO> refreshToken() {
 //
 //    }
+
+    @GetMapping("/test")
+    public String getTest() {
+        return "So work!";
+    }
+
+
 
 }

@@ -1,20 +1,35 @@
 package my.learn.mireaffjpractice10.config;
 
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.crypto.SecretKey;
 import java.time.Duration;
 
 @Configuration
-@Getter
+
 public class JwtConfig {
 
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.lifetime}")
-    private Duration lifetime;
+    @Getter
+    @Value("${jwt.lifetime.access}")
+    private Duration accessLifetime;
+
+    @Getter
+    @Value("${jwt.lifetime.refresh}")
+    private Duration refreshLifetime;
+
+    @Bean
+    public SecretKey secretKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
 }
