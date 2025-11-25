@@ -52,23 +52,15 @@ public class JwtTokenUtils {
         return userRoles;
     }
 
-    private Claims getClaimsFromToken(String token) {
+    private Claims getClaimsFromToken(String token) throws AppException {
         try {
             return Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-        } catch (ExpiredJwtException e) {
-            throw new AppException(e.getMessage(), HttpStatus.FORBIDDEN);
-        } catch (UnsupportedJwtException e) {
-            throw new AppException(e.getMessage(), HttpStatus.FORBIDDEN);
-        } catch (MalformedJwtException e) {
-            throw new AppException(e.getMessage(), HttpStatus.FORBIDDEN);
-        } catch (JwtException e) {
-            throw new AppException(e.getMessage(), HttpStatus.FORBIDDEN);
-        } catch (IllegalArgumentException e) {
-            throw new AppException(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new AppException(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
     }
 }

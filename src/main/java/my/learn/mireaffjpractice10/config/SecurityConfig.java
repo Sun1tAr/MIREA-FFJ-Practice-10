@@ -45,9 +45,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/h2-console/*", "/h2-console", "/api/v1/auth/**").permitAll()
+                        .requestMatchers( "/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/user/**").hasAnyAuthority(UserRole.USER.getAuthority(), UserRole.ADMIN.getAuthority())
                         .requestMatchers("/api/v1/admin/**").hasAuthority(UserRole.ADMIN.getAuthority())
+                        .requestMatchers("/api/v2/auth/**").permitAll()
+                        .requestMatchers("/api/v2/auth/logout").authenticated()
                 )
 
                 .sessionManagement(sm -> sm
