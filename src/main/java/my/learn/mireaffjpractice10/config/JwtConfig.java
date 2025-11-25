@@ -2,6 +2,7 @@ package my.learn.mireaffjpractice10.config;
 
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,11 @@ public class JwtConfig {
     public SecretKey secretKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("ruruur");
     }
 
 }

@@ -1,12 +1,12 @@
 package my.learn.mireaffjpractice10.controller;
 
 import lombok.RequiredArgsConstructor;
+import my.learn.mireaffjpractice10.dto.request.TokenRefreshRequest;
 import my.learn.mireaffjpractice10.dto.request.UserLoginRequest;
 import my.learn.mireaffjpractice10.dto.request.UserRegisterRequest;
 import my.learn.mireaffjpractice10.dto.response.AuthResponse;
 import my.learn.mireaffjpractice10.exception.AppException;
 import my.learn.mireaffjpractice10.model.Token;
-import my.learn.mireaffjpractice10.model.TokenPurpose;
 import my.learn.mireaffjpractice10.model.User;
 import my.learn.mireaffjpractice10.model.UserRole;
 import my.learn.mireaffjpractice10.service.RefreshTokenService;
@@ -20,7 +20,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -43,14 +42,27 @@ public class AuthControllerV2 {
     @PostMapping("/register")
     @Transactional
     public ResponseEntity<AuthResponse> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) {
-        List<Token> tokens = registerUserAndGetToken(userRegisterRequest);
 
-        refreshTokenService.saveRefreshToken(getRefreshToken(tokens));
+        if (userService.userIsExists(userRegisterRequest.getEmail())) {
+            throw new AppException("User already exists", HttpStatus.CONFLICT);
+        }
+
+        User user = User.builder()
+                .email(userRegisterRequest.getEmail())
+                .password(passwordEncoder.encode(userRegisterRequest.getPassword()))
+                .roles(List.of(UserRole.USER))
+                .build();
+
+        User saved = userService.save(user);
+        Token access = jwtTokenUtils.generateAccessToken(saved);
+        Token refresh = jwtTokenUtils.generateRefreshToken(saved);
+
+        refreshTokenService.saveRefreshToken(saved.getId(), refresh);
 
         return new ResponseEntity<>(
                 mapper.mapToAuthResponse(
-                        getAccessToken(tokens),
-                        getRefreshToken(tokens)
+                        access,
+                        refresh
                 ),
                 HttpStatus.CREATED
         );
@@ -58,14 +70,28 @@ public class AuthControllerV2 {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@RequestBody UserLoginRequest userLoginRequest) {
-        List<Token> tokens = loginUserAndGetToken(userLoginRequest);
+        Authentication authenticate;
+        try {
+            authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(userLoginRequest.getEmail(), userLoginRequest.getPassword())
+            );
+        } catch (AuthenticationException e) {
+            throw new AppException(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
 
-        refreshTokenService.saveRefreshToken(getRefreshToken(tokens));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+
+        User principal = (User) authenticate.getPrincipal();
+
+        Token access = jwtTokenUtils.generateAccessToken(principal);
+        Token refresh = jwtTokenUtils.generateRefreshToken(principal);
+
+        refreshTokenService.saveRefreshToken(principal.getId(), refresh);
 
         return new ResponseEntity<>(
                 mapper.mapToAuthResponse(
-                        getAccessToken(tokens),
-                        getRefreshToken(tokens)
+                        access,
+                        refresh
                 ),
                 HttpStatus.OK
         );
@@ -92,64 +118,30 @@ public class AuthControllerV2 {
         );
     }
 
-    //
-//    @GetMapping("/logout")
-//    public ResponseEntity<UserDTO> logout() {
-//
-//    }
-//
-//    @GetMapping("/refresh")
-//    public ResponseEntity<UserDTO> refreshToken() {
-//
-//    }
 
-    private List<Token> registerUserAndGetToken(UserRegisterRequest req) {
-        if (userService.userIsExists(req.getEmail())) {
-            throw new AppException("User already exists", HttpStatus.CONFLICT);
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        refreshTokenService.deleteRefreshToken(principal.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody TokenRefreshRequest tokenRefreshRequest) {
+        String username = jwtTokenUtils.getUsernameFromToken(tokenRefreshRequest.getRefreshToken());
+        User user = userService.findUserByEmail(username);
+        refreshTokenService.deleteRefreshToken(user.getId());
+
+        if (refreshTokenService.isValidRefreshToken(user.getId(), tokenRefreshRequest.getRefreshToken())) {
+            Token accessToken = jwtTokenUtils.generateAccessToken(user);
+            Token refreshToken = jwtTokenUtils.generateRefreshToken(user);
+            refreshTokenService.saveRefreshToken(user.getId(), refreshToken);
+            return new ResponseEntity<>(mapper.mapToAuthResponse(accessToken, refreshToken), HttpStatus.OK);
         }
-
-        User user = User.builder()
-                .email(req.getEmail())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .roles(List.of(UserRole.USER))
-                .build();
-
-        User saved = userService.save(user);
-
-        Token access = jwtTokenUtils.generateAccessToken(saved);
-        Token refresh = jwtTokenUtils.generateRefreshToken(saved);
-        return List.of(access, refresh);
+        throw new AppException("Access denied! Please repeat login.", HttpStatus.FORBIDDEN);
     }
 
-    private List<Token> loginUserAndGetToken(UserLoginRequest req) {
-        Authentication authenticate;
-        try {
-            authenticate = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-            );
-        } catch (AuthenticationException e) {
-            throw new AppException(e.getMessage(), HttpStatus.UNAUTHORIZED);
-        }
 
-        SecurityContextHolder.getContext().setAuthentication(authenticate);
 
-        Token access = jwtTokenUtils.generateAccessToken((UserDetails) authenticate.getPrincipal());
-        Token refresh = jwtTokenUtils.generateRefreshToken((UserDetails) authenticate.getPrincipal());
 
-        return List.of(access, refresh);
-    }
-
-    private Token getAccessToken(List<Token> tokens) {
-        return tokens.stream()
-                .filter(t -> t.getPurpose().equals(TokenPurpose.ACCESS))
-                .findFirst()
-                .orElseThrow(() -> new AppException("Access token not found", HttpStatus.INTERNAL_SERVER_ERROR));
-    }
-
-    private Token getRefreshToken(List<Token> tokens) {
-        return tokens.stream()
-                .filter(t -> t.getPurpose().equals(TokenPurpose.REFRESH))
-                .findFirst()
-                .orElseThrow(() -> new AppException("Refresh token not found", HttpStatus.INTERNAL_SERVER_ERROR));
-    }
 }
