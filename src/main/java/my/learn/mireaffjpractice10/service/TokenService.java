@@ -9,6 +9,7 @@ import my.learn.mireaffjpractice10.model.TokenType;
 import my.learn.mireaffjpractice10.util.JwtTokenUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -56,22 +57,11 @@ public class TokenService {
         redisTemplate.opsForValue().set(id, token.getToken(), jwtConfig.getRefreshLifetime());
     }
 
-    public void deleteRefreshToken(Long id) {
-        redisTemplate.opsForValue().getAndDelete(id);
-
-        //todo
-        // Перенести логику валидации и потом в контроллере просить новый токен
+    public String deleteRefreshToken(Long id) {
+        return redisTemplate.opsForValue().getAndDelete(id);
     }
 
-    private boolean isValidRefreshToken(Long id, String token) {
-        String cachedToken = redisTemplate.opsForValue().get(id);
 
-        if (cachedToken == null) {
-            throw new AppException("Token ttl configuration is wrong", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        return cachedToken.equals(token);
-    }
 
 
 }

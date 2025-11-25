@@ -1,5 +1,6 @@
 package my.learn.mireaffjpractice10.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.learn.mireaffjpractice10.dto.request.TokenRefreshRequest;
 import my.learn.mireaffjpractice10.dto.request.UserLoginRequest;
@@ -42,7 +43,7 @@ public class AuthControllerV2 {
 
     @PostMapping("/register")
     @Transactional
-    public ResponseEntity<AuthResponse> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
 
         User saved = userAuthService.registerUser(userRegisterRequest);
         Token access = tokenService.generateAccessToken(saved);
@@ -60,7 +61,7 @@ public class AuthControllerV2 {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> loginUser(@RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<AuthResponse> loginUser(@RequestBody @Valid UserLoginRequest userLoginRequest) {
         User principal = userAuthService.loginUser(userLoginRequest);
 
         Token access = tokenService.generateAccessToken(principal);
@@ -101,24 +102,21 @@ public class AuthControllerV2 {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        tokenService.deleteRefreshToken(principal.getId());
+        userAuthService.logoutUser();
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(@RequestBody TokenRefreshRequest tokenRefreshRequest) {
-        String username = jwtTokenUtils.getUsernameFromToken(tokenRefreshRequest.getRefreshToken());
-        User user = userService.findUserByEmail(username);
-        tokenService.deleteRefreshToken(user.getId());
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody @Valid TokenRefreshRequest tokenRefreshRequest) {
+        User user = userAuthService.refreshToken(tokenRefreshRequest);
 
-        if (tokenService.isValidRefreshToken(user.getId(), tokenRefreshRequest.getRefreshToken())) {
-            Token accessToken = tokenService.generateAccessToken(user);
-            Token refreshToken = tokenService.generateRefreshToken(user);
-            tokenService.saveRefreshToken(user.getId(), refreshToken);
-            return new ResponseEntity<>(mapper.mapToAuthResponse(accessToken, refreshToken), HttpStatus.OK);
-        }
-        throw new AppException("Access denied! Please repeat login.", HttpStatus.FORBIDDEN);
+        Token accessToken = tokenService.generateAccessToken(user);
+        Token refreshToken = tokenService.generateRefreshToken(user);
+
+        tokenService.saveRefreshToken(user.getId(), refreshToken);
+
+        return new ResponseEntity<>(mapper.mapToAuthResponse(accessToken, refreshToken), HttpStatus.OK);
+
     }
 
 

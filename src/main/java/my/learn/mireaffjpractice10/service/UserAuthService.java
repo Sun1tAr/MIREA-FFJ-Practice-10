@@ -1,11 +1,13 @@
 package my.learn.mireaffjpractice10.service;
 
 import lombok.RequiredArgsConstructor;
+import my.learn.mireaffjpractice10.dto.request.TokenRefreshRequest;
 import my.learn.mireaffjpractice10.dto.request.UserLoginRequest;
 import my.learn.mireaffjpractice10.dto.request.UserRegisterRequest;
 import my.learn.mireaffjpractice10.exception.AppException;
 import my.learn.mireaffjpractice10.model.User;
 import my.learn.mireaffjpractice10.model.UserRole;
+import my.learn.mireaffjpractice10.util.JwtTokenUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +25,8 @@ import java.util.List;
 public class UserAuthService {
 
     private final UserService userService;
+    private final TokenService tokenService;
+    private final JwtTokenUtils jwtTokenUtils;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
@@ -56,9 +60,24 @@ public class UserAuthService {
         return (User) authenticate.getPrincipal();
     }
 
-    public User getUserFromJwt(String token) {
-        //todo
+    public void logoutUser() {
+        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        tokenService.deleteRefreshToken(principal.getId());
     }
 
+    public User refreshToken(TokenRefreshRequest tokenRefreshRequest) {
+        User userFromJwt = getUserFromJwt(tokenRefreshRequest.getRefreshToken());
+        String deleted = tokenService.deleteRefreshToken(userFromJwt.getId());
+
+        if (!deleted.equals(tokenRefreshRequest.getRefreshToken())) {
+            throw new AppException("Invalid refresh token", HttpStatus.UNAUTHORIZED);
+        }
+        return userFromJwt;
+    }
+
+    private User getUserFromJwt(String token) {
+        String username = jwtTokenUtils.getUsernameFromToken(token);
+        return userService.findUserByEmail(username);
+    }
 
 }

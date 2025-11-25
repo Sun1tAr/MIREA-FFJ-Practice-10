@@ -1,5 +1,6 @@
 package my.learn.mireaffjpractice10.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.learn.mireaffjpractice10.dto.request.UserLoginRequest;
 import my.learn.mireaffjpractice10.dto.response.AuthResponse;
@@ -32,14 +33,14 @@ public class AuthControllerV1 {
 
     @PostMapping("/register")
     @Transactional
-    public ResponseEntity<AuthResponse> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public ResponseEntity<AuthResponse> registerUser(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
         User user = userAuthService.registerUser(userRegisterRequest);
         Token token = tokenService.generateAccessToken(user);
         return new ResponseEntity<>(mapper.mapToAuthResponse(token), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> loginUser(@RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<AuthResponse> loginUser(@RequestBody @Valid UserLoginRequest userLoginRequest) {
         User user = userAuthService.loginUser(userLoginRequest);
         Token token = tokenService.generateAccessToken(user);
         return new ResponseEntity<>(mapper.mapToAuthResponse(token), HttpStatus.OK);
