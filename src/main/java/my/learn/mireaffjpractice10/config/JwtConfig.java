@@ -33,9 +33,6 @@ public class JwtConfig {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    @PostConstruct
-    public void init() {
-        System.out.println("ruruur");
-    }
+
 
 }
