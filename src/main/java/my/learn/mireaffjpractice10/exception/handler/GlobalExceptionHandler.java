@@ -3,8 +3,10 @@ package my.learn.mireaffjpractice10.exception.handler;
 import my.learn.mireaffjpractice10.exception.AppException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,7 +15,7 @@ import java.util.Map;
 
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<Object> handleException(Exception e) {
@@ -37,6 +39,11 @@ public class GlobalExceptionHandler {
                 .map(err -> body.put(err.getField(), err.getDefaultMessage())
         );
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Object> handleAccessException(AccessDeniedException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
     }
 
 

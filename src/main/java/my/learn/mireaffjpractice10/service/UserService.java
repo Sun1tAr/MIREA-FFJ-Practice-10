@@ -48,8 +48,7 @@ public class UserService implements UserDetailsService {
     }
 
     public User findMe() {
-        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return findUserByEmail(principal.getUsername());
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     @PreAuthorize("hasRole('ADMIN') or principal.id == #id")

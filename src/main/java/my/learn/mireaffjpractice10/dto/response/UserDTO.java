@@ -1,11 +1,13 @@
 package my.learn.mireaffjpractice10.dto.response;
 
+import lombok.Builder;
 import lombok.Data;
 import my.learn.mireaffjpractice10.model.UserRole;
 
 import java.util.List;
 
 @Data
+@Builder
 public class UserDTO {
 
     private Long id;

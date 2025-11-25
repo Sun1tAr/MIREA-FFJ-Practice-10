@@ -24,7 +24,11 @@ public class CommonMapper {
     }
 
     public UserDTO mapToDTO(User user) {
-        throw new AppException("This functional is developing", HttpStatus.INTERNAL_SERVER_ERROR);
+        return UserDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .roles(user.getRoles())
+                .build();
     }
 
 }
